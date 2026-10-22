@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fertilizer Calculator | AgriSmart AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo"><span>🌾 AgriSmart AI</span></div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <li><a href="/yield">Yield Prediction</a></li>
+      <li><a href="/disease">Disease Detection</a></li>
+      <li><a href="/simulator">What-If Simulator</a></li>
+      <li><a href="/fertilizer" class="active">Fertilizer Calculator</a></li>
+      <li><a href="/crop_recommendation">Crop Recommendation</a></li>
+      <li><a href="/result">Results Dashboard</a></li>
+    </ul>
+  </nav>
+  <script>
+    document.getElementById('navHamburger').addEventListener('click', function() {
+      this.classList.toggle('open');
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+
+  <div class="container">
+
+    <div class="page-hero" style="text-align:left;padding:2rem 0 1.5rem;">
+      <div class="hero-badge">🧪 AI Soil Nutrient Engine</div>
+      <h1>Smart Fertilizer &amp; Dosage Calculator</h1>
+      <p>Calculate exact Urea, DAP, and MOP fertilizer dosages based on crop type, farm area, and soil pH.</p>
+    </div>
+
+    <div class="dashboard-grid">
+
+      <!-- Form -->
+      <div class="card">
+        <h2 class="card-title">🧪 Enter Soil Parameters</h2>
+        <form action="/calculate_fertilizer" method="POST">
+          <div class="form-section">
+            <div class="section-header">🌱 CROP &amp; FARM AREA</div>
+            <div class="grid-3-inputs">
+              <div class="form-group">
+                <label for="crop">Crop Type</label>
+                <select name="crop" id="crop" class="input-control" required>
+                  <option value="Tomato" selected>Tomato</option>
+                  <option value="Potato">Potato</option>
+                  <option value="Rice">Rice</option>
+                  <option value="Wheat">Wheat</option>
+                  <option value="Maize">Maize</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="area">Farm Area <span class="unit-tag">acres</span></label>
+                <input type="number" step="0.1" name="area" id="area" value="2.5" class="input-control" required>
+              </div>
+              <div class="form-group">
+                <label for="soil_ph">Soil pH <span class="unit-tag">pH</span></label>
+                <input type="number" step="0.1" name="soil_ph" id="soil_ph" value="6.5" class="input-control" required>
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn-predict">
+            <span>🧪 Calculate Recommended Dosages</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Results -->
+      <div class="card">
+        <h2 class="card-title">📊 Dosage Recommendation</h2>
+
+        {% if rec %}
+        <!-- Fertilizer Metric Cards -->
+        <div style="display:flex;flex-direction:column;gap:1rem;margin-bottom:1.25rem;">
+
+          <div class="metric-card metric-card--yield" style="padding:1.1rem 1.4rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div class="metric-card-label">Urea (46% N)</div>
+                <div class="metric-card-value" style="font-size:1.5rem;">{{ rec.total_farm.Urea_kg }} <span style="font-size:0.9rem;color:var(--text-muted);">kg</span></div>
+              </div>
+              <div class="metric-card-icon" style="margin:0;">🌿</div>
+            </div>
+          </div>
+
+          <div class="metric-card metric-card--disease" style="padding:1.1rem 1.4rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div class="metric-card-label">DAP (46% P + 18% N)</div>
+                <div class="metric-card-value" style="font-size:1.5rem;">{{ rec.total_farm.DAP_kg }} <span style="font-size:0.9rem;color:var(--text-muted);">kg</span></div>
+              </div>
+              <div class="metric-card-icon" style="margin:0;">🧬</div>
+            </div>
+          </div>
+
+          <div class="metric-card metric-card--severity" style="padding:1.1rem 1.4rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div class="metric-card-label">MOP (60% K)</div>
+                <div class="metric-card-value" style="font-size:1.5rem;">{{ rec.total_farm.MOP_kg }} <span style="font-size:0.9rem;color:var(--text-muted);">kg</span></div>
+              </div>
+              <div class="metric-card-icon" style="margin:0;">⚗️</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert--info">
+          <strong>💡 Soil pH Advice:</strong> {{ rec.ph_advice }}
+        </div>
+
+        {% else %}
+        <div style="text-align:center;padding:3rem 1rem;">
+          <div style="font-size:3rem;margin-bottom:1rem;">🧪</div>
+          <p style="color:var(--text-muted);font-size:0.95rem;">Enter soil parameters and click calculate to view required fertilizer dosages.</p>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <footer>BCA 5th-Semester Project Review | AgriSmart AI Dashboard Prototype</footer>
+</body>
+</html>

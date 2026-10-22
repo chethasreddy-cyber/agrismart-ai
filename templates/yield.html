@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yield Prediction | AgriSmart AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo"><span>🌾 AgriSmart AI</span></div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <li><a href="/yield" class="active">Yield Prediction</a></li>
+      <li><a href="/disease">Disease Detection</a></li>
+      <li><a href="/simulator">What-If Simulator</a></li>
+      <li><a href="/fertilizer">Fertilizer Calculator</a></li>
+      <li><a href="/crop_recommendation">Crop Recommendation</a></li>
+      <li><a href="/result">Results Dashboard</a></li>
+    </ul>
+  </nav>
+  <script>
+    document.getElementById('navHamburger').addEventListener('click', function() {
+      this.classList.toggle('open');
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+
+  <div class="container">
+
+    <div class="page-hero" style="text-align:left;padding:2rem 0 1.5rem;">
+      <div class="hero-badge">🌾 Step 1 of 4</div>
+      <h1>Smart Crop Yield Prediction</h1>
+      <p>Enter your farm and environmental parameters to get an AI-powered yield forecast.</p>
+    </div>
+
+    <div class="dashboard-grid">
+
+      <!-- Form Card -->
+      <div class="card">
+        <h2 class="card-title">⚙️ Farm &amp; Environmental Inputs</h2>
+
+        <!-- Input Quality Bar -->
+        <div class="quality-box">
+          <div class="quality-header">
+            <div class="quality-title">📊 Input Quality</div>
+            <div class="quality-percent" id="qualityPercent">100%</div>
+          </div>
+          <div class="quality-bar-bg">
+            <div class="quality-bar-fill" id="qualityBar" style="width:100%;"></div>
+          </div>
+          <div class="quality-status-text status-valid" id="qualityStatus">✓ All parameters entered</div>
+        </div>
+
+        <form action="/predict_yield" method="POST" id="yieldForm" onsubmit="handleFormSubmit(event)">
+
+          <!-- Crop & Farm -->
+          <div class="form-section">
+            <div class="section-header"><span>🌱</span> CROP &amp; FARM</div>
+            <div class="grid-3-inputs">
+              <div class="form-group">
+                <label for="crop">Crop Type</label>
+                <select name="crop" id="crop" class="input-control" required onchange="updateSummary()">
+                  <option value="Tomato" selected>Tomato</option>
+                  <option value="Potato">Potato</option>
+                  <option value="Rice">Rice</option>
+                  <option value="Wheat">Wheat</option>
+                  <option value="Maize">Maize</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="season">Season</label>
+                <select name="season" id="season" class="input-control" required onchange="updateSummary()">
+                  <option value="Kharif">Kharif</option>
+                  <option value="Rabi" selected>Rabi</option>
+                  <option value="Whole Year">Whole Year</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="area">Farm Area <span class="unit-tag">acres</span></label>
+                <input type="number" step="0.1" min="0.1" name="area" id="area" value="2.5" class="input-control" required oninput="updateSummary()">
+              </div>
+            </div>
+          </div>
+
+          <!-- Environmental (Auto-fetched) -->
+          <div class="form-section">
+            <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
+              <span><span>🌤️</span> ENVIRONMENTAL CONDITIONS</span>
+              <span id="weatherStatus" style="font-size:0.75rem;font-weight:600;color:var(--primary-light);display:flex;align-items:center;gap:.4rem;">
+                <span id="weatherDot" style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>
+                <span id="weatherMsg">Fetching live weather…</span>
+              </span>
+            </div>
+            <div class="grid-3-inputs">
+              <div class="form-group">
+                <label for="temperature">Avg Temperature <span class="unit-tag">°C</span></label>
+                <div style="position:relative;">
+                  <input type="number" step="0.1" name="temperature" id="temperature" value="26.5"
+                    class="input-control" required readonly
+                    style="background:rgba(16,185,129,0.05);cursor:not-allowed;padding-right:2.2rem;">
+                  <span id="tempLoader" style="position:absolute;right:.7rem;top:50%;transform:translateY(-50%);font-size:.85rem;">⏳</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="humidity">Humidity <span class="unit-tag">%</span></label>
+                <div style="position:relative;">
+                  <input type="number" step="0.1" min="0" max="100" name="humidity" id="humidity" value="65.0"
+                    class="input-control" required readonly
+                    style="background:rgba(16,185,129,0.05);cursor:not-allowed;padding-right:2.2rem;">
+                  <span id="humLoader" style="position:absolute;right:.7rem;top:50%;transform:translateY(-50%);font-size:.85rem;">⏳</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="rainfall">Annual Rainfall <span class="unit-tag">mm</span></label>
+                <div style="position:relative;">
+                  <input type="number" step="0.1" min="0" name="rainfall" id="rainfall" value="750.0"
+                    class="input-control" required readonly
+                    style="background:rgba(16,185,129,0.05);cursor:not-allowed;padding-right:2.2rem;">
+                  <span id="rainLoader" style="position:absolute;right:.7rem;top:50%;transform:translateY(-50%);font-size:.85rem;">⏳</span>
+                </div>
+              </div>
+            </div>
+            <div id="weatherLocation" style="margin-top:.5rem;font-size:.78rem;color:var(--text-muted);"></div>
+          </div>
+
+          <button type="submit" class="btn-predict" id="predictBtn">
+            <div class="spinner" id="btnSpinner"></div>
+            <span id="btnText">🔮 Predict Crop Yield</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Summary Card -->
+      <div class="card summary-card">
+        <h2 class="card-title">🌾 Farm Summary</h2>
+        <div class="summary-list">
+          <div class="summary-item">
+            <span class="summary-label">Crop</span>
+            <span class="summary-val" id="sumCrop">Tomato</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Season</span>
+            <span class="summary-val" id="sumSeason">Rabi</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Farm Area</span>
+            <span class="summary-val" id="sumArea">2.5 acres</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Temperature</span>
+            <span class="summary-val" id="sumTemp">—</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Humidity</span>
+            <span class="summary-val" id="sumHum">—</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Rainfall</span>
+            <span class="summary-val" id="sumRain">—</span>
+          </div>
+        </div>
+        <div class="ai-status-box">
+          <div class="ai-status-dot"></div>
+          <div>
+            <div class="ai-status-title">AI MODEL STATUS</div>
+            <div class="ai-status-text" id="aiStatusText">Ready for prediction</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>AgriSmart AI Dashboard Prototype</footer>
+
+  <script>
+    /* ── Summary updater ── */
+    function updateSummary() {
+      document.getElementById('sumCrop').innerText   = document.getElementById('crop').value || '--';
+      document.getElementById('sumSeason').innerText = document.getElementById('season').value || '--';
+      const area = document.getElementById('area').value;
+      document.getElementById('sumArea').innerText   = area ? area + ' acres' : '--';
+      const temp = document.getElementById('temperature').value;
+      document.getElementById('sumTemp').innerText   = temp ? temp + '°C' : '--';
+      const hum  = document.getElementById('humidity').value;
+      document.getElementById('sumHum').innerText    = hum  ? hum  + '%'  : '--';
+      const rain = document.getElementById('rainfall').value;
+      document.getElementById('sumRain').innerText   = rain ? rain + ' mm': '--';
+    }
+
+    function handleFormSubmit(e) {
+      document.getElementById('btnSpinner').style.display = 'inline-block';
+      document.getElementById('btnText').innerText = ' Processing AI Model...';
+    }
+
+    /* ── Weather helpers ── */
+    function setWeatherOk(locationLabel) {
+      document.getElementById('weatherDot').style.background = '#10b981';
+      document.getElementById('weatherMsg').innerText = 'Live weather loaded';
+      ['tempLoader','humLoader','rainLoader'].forEach(id => {
+        document.getElementById(id).innerText = '✓';
+      });
+      if (locationLabel) {
+        document.getElementById('weatherLocation').innerText = '📍 Location: ' + locationLabel;
+      }
+      updateSummary();
+    }
+
+    function setWeatherFallback(reason) {
+      document.getElementById('weatherDot').style.background = '#f59e0b';
+      document.getElementById('weatherMsg').innerText = 'Using estimated values (' + reason + ')';
+      ['tempLoader','humLoader','rainLoader'].forEach(id => {
+        document.getElementById(id).innerText = '~';
+      });
+      updateSummary();
+    }
+
+    function applyWeather(temp, hum, rain) {
+      document.getElementById('temperature').value = temp.toFixed(1);
+      document.getElementById('humidity').value    = hum.toFixed(1);
+      document.getElementById('rainfall').value    = rain.toFixed(1);
+    }
+
+    /* ── Fetch from Open-Meteo (free, no API key) ── */
+    async function fetchWeatherFromCoords(lat, lon) {
+      try {
+        // Current weather: temperature, humidity
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+          `&current=temperature_2m,relative_humidity_2m,precipitation` +
+          `&hourly=precipitation&daily=precipitation_sum&timezone=auto&forecast_days=1`;
+
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('API error');
+        const data = await resp.json();
+
+        const temp = data.current.temperature_2m;
+        const hum  = data.current.relative_humidity_2m;
+
+        // Use daily precipitation sum as a proxy; scale to annual estimate
+        // Open-Meteo gives today's precipitation; we multiply by 365 as a rough annual estimate
+        const dailyRain = data.daily && data.daily.precipitation_sum
+          ? data.daily.precipitation_sum[0]
+          : (data.current.precipitation || 2);
+        const annualRain = Math.round(dailyRain * 365 * 10) / 10;
+
+        // Clamp annual rainfall to a sensible range for ML model (300–2500 mm)
+        const clampedRain = Math.min(Math.max(annualRain, 300), 2500);
+
+        applyWeather(temp, hum, clampedRain);
+
+        // Try reverse geocoding for a friendly location name
+        try {
+          const geoResp = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+          );
+          const geoData = await geoResp.json();
+          const city = geoData.address.city || geoData.address.town ||
+                       geoData.address.village || geoData.address.county || 'Detected';
+          const state = geoData.address.state || '';
+          setWeatherOk(city + (state ? ', ' + state : ''));
+        } catch (_) {
+          setWeatherOk(`${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E`);
+        }
+      } catch (err) {
+        console.warn('Weather fetch failed:', err);
+        setWeatherFallback('API unavailable');
+      }
+    }
+
+    /* ── Main: use browser geolocation ── */
+    async function autoLoadWeather() {
+      if (!navigator.geolocation) {
+        setWeatherFallback('geolocation not supported');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          fetchWeatherFromCoords(pos.coords.latitude, pos.coords.longitude);
+        },
+        err => {
+          // Permission denied or timeout — use server-side weather API with default coords
+          fetch('/api/weather')
+            .then(r => r.json())
+            .then(d => {
+              applyWeather(d.temperature, d.humidity, d.rainfall);
+              setWeatherFallback('location access denied');
+            })
+            .catch(() => setWeatherFallback('offline'));
+        },
+        { timeout: 8000 }
+      );
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateSummary();
+      autoLoadWeather();
+    });
+  </script>
+</body>
+</html>

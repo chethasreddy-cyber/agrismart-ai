@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results Dashboard | AgriSmart AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo"><span>🌾 AgriSmart AI</span></div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <li><a href="/yield">Yield Prediction</a></li>
+      <li><a href="/disease">Disease Detection</a></li>
+      <li><a href="/simulator">What-If Simulator</a></li>
+      <li><a href="/fertilizer">Fertilizer Calculator</a></li>
+      <li><a href="/crop_recommendation">Crop Recommendation</a></li>
+      <li><a href="/result" class="active">Results Dashboard</a></li>
+    </ul>
+  </nav>
+  <script>
+    document.getElementById('navHamburger').addEventListener('click', function() {
+      this.classList.toggle('open');
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+
+  <div class="container">
+
+    <div class="page-hero" style="text-align:left;padding:2rem 0 1.5rem;">
+      <div class="hero-badge">🎯 Step 4 of 4 — Results Dashboard</div>
+      <h1>What-If Disease Impact Simulation Results</h1>
+      <p>Comprehensive comparison of simulated future disease severity and estimated crop yield across all management scenarios.</p>
+    </div>
+
+    <!-- Top Metric Cards -->
+    <div class="metric-cards-grid">
+
+      <div class="metric-card metric-card--yield">
+        <div class="metric-card-icon">🌾</div>
+        <div class="metric-card-label">Baseline Crop Yield</div>
+        <div class="metric-card-value">
+          {{ sim_result.current_yield }}
+          <span style="font-size:1rem;font-weight:600;color:var(--text-muted);">tons/acre</span>
+        </div>
+        <div class="metric-card-divider"></div>
+        <div class="metric-card-meta">
+          <span>Random Forest ML Forecast</span>
+          <span class="metric-pill">RF Model</span>
+        </div>
+      </div>
+
+      <div class="metric-card metric-card--disease">
+        <div class="metric-card-icon">🍃</div>
+        <div class="metric-card-label">Detected Disease</div>
+        <div class="metric-card-value">{{ sim_result.disease }}</div>
+        <div class="metric-card-divider"></div>
+        <div class="metric-card-meta">
+          <span>Initial Severity</span>
+          <span class="metric-pill" style="--mc-pill-bg:rgba(245,158,11,0.12);--mc-pill-color:#fbbf24;--mc-pill-border:rgba(245,158,11,0.28);">
+            {{ sim_result.current_severity }}%
+          </span>
+        </div>
+      </div>
+
+      <div class="metric-card metric-card--yield" style="border-color:rgba(6,182,212,0.32);">
+        <div class="metric-card-icon">🔮</div>
+        <div class="metric-card-label">Future Estimated Yield</div>
+        <div class="metric-card-value">
+          {{ sim_result.future_yield }}
+          <span style="font-size:1rem;font-weight:600;color:var(--text-muted);">tons/acre</span>
+        </div>
+        <div class="metric-card-divider"></div>
+        <div class="metric-card-meta">
+          <span>Scenario</span>
+          <span class="metric-pill">{{ sim_result.selected_scenario }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Scenario Comparison Table -->
+    <div class="card" style="margin-bottom:2rem;">
+      <h2 class="card-title">⭐ What-If Scenario Comparison</h2>
+      <p style="color:var(--text-muted);margin-bottom:1.25rem;font-size:0.9rem;">Comparison of 3 management options simulated over 7 days.</p>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:1px solid rgba(52,211,153,0.2);">
+              <th style="padding:1rem;color:var(--primary-light);text-align:left;">Scenario</th>
+              <th style="padding:1rem;color:var(--primary-light);text-align:left;">Future Severity</th>
+              <th style="padding:1rem;color:var(--primary-light);text-align:left;">Future Yield</th>
+              <th style="padding:1rem;color:var(--primary-light);text-align:left;">Yield Impact</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in sim_result.comparison %}
+            <tr style="border-bottom:1px solid rgba(52,211,153,0.1);{% if row.scenario == sim_result.selected_scenario %}background:rgba(16,185,129,0.1);{% endif %}">
+              <td style="padding:1rem;font-weight:{% if row.scenario == sim_result.selected_scenario %}700{% else %}500{% endif %};">
+                {% if row.scenario == sim_result.selected_scenario %}👉 {% endif %}{{ row.scenario }}
+              </td>
+              <td style="padding:1rem;">{{ row.future_severity }}%</td>
+              <td style="padding:1rem;">{{ row.future_yield }} tons/acre</td>
+              <td style="padding:1rem;font-family:'Outfit',sans-serif;font-weight:700;color:{% if row.yield_diff >= -0.3 %}#34d399{% else %}#f87171{% endif %};">
+                {{ row.yield_diff }} tons/acre
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card" style="margin-bottom:2rem;">
+      <h2 class="card-title">📈 Future Yield Comparison</h2>
+      <div style="height:300px;position:relative;">
+        <canvas id="yieldChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Organic vs Chemical Remedy Switcher -->
+    {% if remedy_info %}
+    <div class="card" style="margin-bottom:2rem;border:1px solid rgba(52,211,153,0.3);background:rgba(11,37,34,0.85);box-shadow:0 18px 45px -10px rgba(0,0,0,0.5);">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;border-bottom:1px solid rgba(52,211,153,0.15);padding-bottom:1rem;">
+        <div>
+          <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase;">TREATMENT DECISION ENGINE</div>
+          <h2 class="card-title" style="margin-bottom:0.25rem;">🌿 Organic vs. ⚗️ Chemical Remedy Switcher</h2>
+          <div style="font-size:0.88rem;color:var(--primary-light);">Target Infection: <strong>{{ remedy_info.disease }}</strong></div>
+        </div>
+
+        <!-- Interactive Switcher Buttons -->
+        <div style="display:inline-flex;background:rgba(7,26,23,0.8);border:1px solid rgba(52,211,153,0.25);border-radius:12px;padding:4px;gap:4px;">
+          <button type="button" id="tabOrganicBtn" onclick="switchRemedy('organic')" style="background:var(--primary);color:#03201a;font-family:'Outfit',sans-serif;font-weight:800;font-size:0.88rem;padding:0.6rem 1.25rem;border:none;border-radius:8px;cursor:pointer;transition:all 0.25s ease;">
+            🌿 Organic Treatment
+          </button>
+          <button type="button" id="tabChemicalBtn" onclick="switchRemedy('chemical')" style="background:transparent;color:var(--text-sub);font-family:'Outfit',sans-serif;font-weight:700;font-size:0.88rem;padding:0.6rem 1.25rem;border:none;border-radius:8px;cursor:pointer;transition:all 0.25s ease;">
+            ⚗️ Chemical Treatment
+          </button>
+        </div>
+      </div>
+
+      <!-- Organic Treatment Panel -->
+      <div id="panelOrganic" style="display:block;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+          <h3 style="font-family:'Outfit',sans-serif;font-size:1.35rem;color:var(--primary-light);font-weight:800;">
+            {{ remedy_info.organic.title }}
+          </h3>
+          <span style="display:inline-block;padding:0.35rem 0.9rem;border-radius:2rem;background:rgba(16,185,129,0.18);border:1px solid rgba(52,211,153,0.35);color:var(--primary-light);font-size:0.8rem;font-weight:700;">
+            {{ remedy_info.organic.badge }}
+          </span>
+        </div>
+
+        <!-- 4 Key Metrics Grid -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;">
+          <div style="background:rgba(7,26,23,0.6);border:1px solid rgba(52,211,153,0.18);border-radius:12px;padding:1rem;">
+            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Estimated Cost</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:800;color:var(--primary-light);margin-top:0.25rem;">{{ remedy_info.organic.cost_per_acre }}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem;">Per acre application</div>
+          </div>
+          <div style="background:rgba(7,26,23,0.6);border:1px solid rgba(52,211,153,0.18);border-radius:12px;padding:1rem;">
+            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Harvest Safety (PHI)</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:800;color:#34d399;margin-top:0.25rem;">{{ remedy_info.organic.phi_days }}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem;">Zero chemical residues</div>
+          </div>
+          <div style="background:rgba(7,26,23,0.6);border:1px solid rgba(52,211,153,0.18);border-radius:12px;padding:1rem;">
+            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Pollinators &amp; Bees</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:800;color:var(--accent-cyan);margin-top:0.25rem;">🐝 Safe</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem;">{{ remedy_info.organic.bee_safety }}</div>
+          </div>
+          <div style="background:rgba(7,26,23,0.6);border:1px solid rgba(52,211,153,0.18);border-radius:12px;padding:1rem;">
+            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Eco-Friendliness Score</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:800;color:#10b981;margin-top:0.25rem;">{{ remedy_info.organic.eco_score }}%</div>
+            <div style="width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;margin-top:0.4rem;overflow:hidden;">
+              <div style="width:{{ remedy_info.organic.eco_score }}%;height:100%;background:linear-gradient(90deg, #10b981, #34d399);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recipe & Instructions -->
+        <div style="background:rgba(7,26,23,0.5);border:1px solid rgba(52,211,153,0.15);border-radius:12px;padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;">
+          <div><strong style="color:var(--primary-light);">🧪 Dosage &amp; Formula:</strong> <span style="color:var(--text-main);">{{ remedy_info.organic.dosage }}</span></div>
+          <div><strong style="color:var(--primary-light);">📅 Spray Schedule:</strong> <span style="color:var(--text-sub);">{{ remedy_info.organic.schedule }}</span></div>
+          <div><strong style="color:var(--primary-light);">🌱 Soil Benefit:</strong> <span style="color:var(--text-sub);">{{ remedy_info.organic.soil_benefit }}</span></div>
+        </div>
+      </div>
+
+      <!-- Chemical Treatment Panel -->
+      <div id="panelChemical" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;">
+          <h3 style="font-family:'Outfit',sans-serif;font-size:1.35rem;color:#f59e0b;font-weight:800;">
+            {{ remedy_info.chemical.title }}
+          </h3>
+          <span style="display:inline-block;padding:0.35rem 0.9rem;border-radius:2rem;background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.35);color:#fbbf24;font-size:0.8rem;font-weight:700;">
+            {{ remedy_info.chemical.badge }}
+          </span>
+        </div>
+
+        <!-- 4 Key Metrics Grid -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;">
+          <div style="background:rgba(7,26,23,0.6);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:1rem;">
+            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Estimated Cost</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:800;color:#fbbf24;margin-top:0.25rem;">{{ remedy_info.chemical.cost_per_acre }}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem;">Higher synthetic cost</div>
+          </div>
+          <div style="background:rgba(7,26,23,0.6);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:1rem;">
+            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Harvest Safety (PHI)</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:800;color:#f87171;margin-top:0.25rem;">{{ remedy_info.chemical.phi_days }}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem;">Mandatory waiting period</div>
+          </div>
+          <div style="background:rgba(7,26,23,0.6);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:1rem;">
+            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Pollinators &amp; Bees</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:1.15rem;font-weight:800;color:#fbbf24;margin-top:0.25rem;">⚠️ Caution</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem;">{{ remedy_info.chemical.bee_safety }}</div>
+          </div>
+          <div style="background:rgba(7,26,23,0.6);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:1rem;">
+            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Eco-Friendliness Score</div>
+            <div style="font-family:'Outfit',sans-serif;font-size:1.35rem;font-weight:800;color:#f59e0b;margin-top:0.25rem;">{{ remedy_info.chemical.eco_score }}%</div>
+            <div style="width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;margin-top:0.4rem;overflow:hidden;">
+              <div style="width:{{ remedy_info.chemical.eco_score }}%;height:100%;background:linear-gradient(90deg, #f59e0b, #ef4444);"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recipe & Instructions -->
+        <div style="background:rgba(7,26,23,0.5);border:1px solid rgba(245,158,11,0.15);border-radius:12px;padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;">
+          <div><strong style="color:#fbbf24;">🧪 Dosage &amp; Formula:</strong> <span style="color:var(--text-main);">{{ remedy_info.chemical.dosage }}</span></div>
+          <div><strong style="color:#fbbf24;">📅 Spray Schedule:</strong> <span style="color:var(--text-sub);">{{ remedy_info.chemical.schedule }}</span></div>
+          <div><strong style="color:#fbbf24;">⚠️ Safety &amp; Soil Advice:</strong> <span style="color:var(--text-sub);">{{ remedy_info.chemical.soil_benefit }}</span></div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Fertilizer & Crop Rec -->
+    {% if fert_rec %}
+    <div class="grid-2" style="margin-bottom:2rem;">
+
+      <div class="card">
+        <h2 class="card-title">🧪 Smart Fertilizer Recommendation</h2>
+        <div style="display:flex;flex-direction:column;gap:0.8rem;">
+          <div class="summary-item">
+            <span class="summary-label">Urea (46% N)</span>
+            <span class="summary-val">{{ fert_rec.total_farm.Urea_kg }} kg</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">DAP (46% P, 18% N)</span>
+            <span class="summary-val">{{ fert_rec.total_farm.DAP_kg }} kg</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">MOP (60% K)</span>
+            <span class="summary-val">{{ fert_rec.total_farm.MOP_kg }} kg</span>
+          </div>
+        </div>
+        <div class="alert alert--info" style="margin-top:1.25rem;">
+          <strong>💡 Soil pH Advice:</strong> {{ fert_rec.ph_advice }}
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">🤖 Optimal Crop Suitability</h2>
+        {% if crop_recs %}
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          {% for item in crop_recs %}
+          <div class="crop-rank-row {% if loop.index == 1 %}crop-rank-row--top{% endif %}">
+            <div class="crop-rank-badge">
+              {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}#{{ loop.index }}{% endif %}
+            </div>
+            <span style="flex:1;font-weight:700;color:var(--text-main);">{{ item.crop }}</span>
+            <div class="crop-rank-score">{{ item.score }}%</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+    {% endif %}
+
+    <div style="text-align:center;margin-top:2rem;">
+      <a href="/yield" class="btn-predict" style="display:inline-flex;width:auto;padding:0 2.5rem;text-decoration:none;">🔄 Run Another Prediction</a>
+    </div>
+
+  </div>
+
+  <footer>AgriSmart AI Dashboard Prototype</footer>
+
+  <script>
+    function switchRemedy(type) {
+      const panelOrganic = document.getElementById('panelOrganic');
+      const panelChemical = document.getElementById('panelChemical');
+      const btnOrganic = document.getElementById('tabOrganicBtn');
+      const btnChemical = document.getElementById('tabChemicalBtn');
+
+      if (!panelOrganic || !panelChemical) return;
+
+      if (type === 'organic') {
+        panelOrganic.style.display = 'block';
+        panelChemical.style.display = 'none';
+
+        btnOrganic.style.background = 'var(--primary)';
+        btnOrganic.style.color = '#03201a';
+
+        btnChemical.style.background = 'transparent';
+        btnChemical.style.color = 'var(--text-sub)';
+      } else {
+        panelOrganic.style.display = 'none';
+        panelChemical.style.display = 'block';
+
+        btnChemical.style.background = '#f59e0b';
+        btnChemical.style.color = '#03201a';
+
+        btnOrganic.style.background = 'transparent';
+        btnOrganic.style.color = 'var(--text-sub)';
+      }
+    }
+
+    const scenarios = {{ sim_result.comparison | map(attribute='scenario') | list | tojson }};
+    const yields = {{ sim_result.comparison | map(attribute='future_yield') | list | tojson }};
+    const ctx = document.getElementById('yieldChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: scenarios,
+        datasets: [{
+          label: 'Estimated Yield (tons/acre)',
+          data: yields,
+          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+          borderRadius: 8,
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#cbd5e1', font: { family: 'Plus Jakarta Sans', weight: 600 } } }
+        },
+        scales: {
+          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(52,211,153,0.08)' } },
+          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(52,211,153,0.08)' } }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

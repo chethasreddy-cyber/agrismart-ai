@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgriSmart AI — Crop Intelligence Platform</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo"><span>🌾 AgriSmart AI</span></div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/" class="active">Home</a></li>
+      <li><a href="/yield">Yield Prediction</a></li>
+      <li><a href="/disease">Disease Detection</a></li>
+      <li><a href="/simulator">What-If Simulator</a></li>
+      <li><a href="/fertilizer">Fertilizer Calculator</a></li>
+      <li><a href="/crop_recommendation">Crop Recommendation</a></li>
+      <li><a href="/result">Results Dashboard</a></li>
+    </ul>
+  </nav>
+  <script>
+    document.getElementById('navHamburger').addEventListener('click', function() {
+      this.classList.toggle('open');
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+
+  <div class="container">
+
+    <!-- Hero -->
+    <div class="page-hero">
+      <h1>AI-Based Crop Yield Prediction<br>&amp; Disease Impact Simulator</h1>
+      <p>An integrated machine-learning platform combining crop yield forecasting, leaf disease classification, severity assessment, and scenario-based what-if simulation.</p>
+      <a href="/yield" class="btn-predict" style="display:inline-flex;width:auto;padding:0 2.5rem;text-decoration:none;margin-top:1.5rem;">Click to Start</a>
+    </div>
+
+    <!-- Feature Cards (display only — not clickable links) -->
+    <div class="feature-grid">
+
+      <div class="feature-card feature-card--static">
+        <div class="feature-card-icon" style="background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.22);">🌾</div>
+        <div class="feature-card-body">
+          <div class="feature-card-title">Yield Prediction</div>
+          <div class="feature-card-desc">Random Forest ML regressor predicts crop yield from season, area, rainfall, temperature and humidity.</div>
+        </div>
+      </div>
+
+      <div class="feature-card feature-card--static">
+        <div class="feature-card-icon" style="background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.22);">🍃</div>
+        <div class="feature-card-body">
+          <div class="feature-card-title">Disease Detection</div>
+          <div class="feature-card-desc">Upload a leaf photo. OpenCV HSV analysis classifies infection type and quantifies affected area %.</div>
+        </div>
+      </div>
+
+      <div class="feature-card feature-card--static">
+        <div class="feature-card-icon" style="background:rgba(245,158,11,0.1);border-color:rgba(245,158,11,0.22);">⭐</div>
+        <div class="feature-card-body">
+          <div class="feature-card-title">What-If Simulator</div>
+          <div class="feature-card-desc">Model three management scenarios — Treat Now, Wait 7 Days, No Treatment — and compare yield loss.</div>
+        </div>
+      </div>
+
+      <div class="feature-card feature-card--static">
+        <div class="feature-card-icon" style="background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.22);">🧪</div>
+        <div class="feature-card-body">
+          <div class="feature-card-title">Fertilizer Calculator</div>
+          <div class="feature-card-desc">Calculates Urea, DAP and MOP dosages based on crop type, farm area and soil pH.</div>
+        </div>
+      </div>
+
+      <div class="feature-card feature-card--static">
+        <div class="feature-card-icon" style="background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.22);">🤖</div>
+        <div class="feature-card-body">
+          <div class="feature-card-title">Crop Recommendation</div>
+          <div class="feature-card-desc">ML classifier ranks the top 5 most suitable crops based on soil pH and local weather conditions.</div>
+        </div>
+      </div>
+
+      <div class="feature-card feature-card--static feature-card--highlight">
+        <div class="feature-card-icon" style="background:rgba(52,211,153,0.15);border-color:rgba(52,211,153,0.4);">🚀</div>
+        <div class="feature-card-body">
+          <div class="feature-card-title">Run Full Demo</div>
+          <div class="feature-card-desc">Walk through the complete guided pipeline: Yield → Disease → Simulator → Results.</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer>BCA 5th-Semester Project Review | AgriSmart AI Dashboard Prototype</footer>
+
+</body>
+</html>

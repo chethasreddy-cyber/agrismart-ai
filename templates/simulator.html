@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What-If Simulator | AgriSmart AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo"><span>🌾 AgriSmart AI</span></div>
+    <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <li><a href="/yield">Yield Prediction</a></li>
+      <li><a href="/disease">Disease Detection</a></li>
+      <li><a href="/simulator" class="active">What-If Simulator</a></li>
+      <li><a href="/fertilizer">Fertilizer Calculator</a></li>
+      <li><a href="/crop_recommendation">Crop Recommendation</a></li>
+      <li><a href="/result">Results Dashboard</a></li>
+    </ul>
+  </nav>
+  <script>
+    document.getElementById('navHamburger').addEventListener('click', function() {
+      this.classList.toggle('open');
+      document.getElementById('navLinks').classList.toggle('open');
+    });
+  </script>
+
+  <div class="container">
+
+    <div class="page-hero" style="text-align:left;padding:2rem 0 1.5rem;">
+      <div class="hero-badge">⭐ Step 3 of 4 — Core Review Feature</div>
+      <h1>What-If Disease Impact Simulator</h1>
+      <p>Simulate how disease severity and crop yield output change over time under different management decisions.</p>
+    </div>
+
+    <!-- Premium Metric Cards -->
+    <div class="metric-cards-grid">
+
+      <div class="metric-card metric-card--disease">
+        <div class="metric-card-icon">🍃</div>
+        <div class="metric-card-label">Detected Infection</div>
+        <div class="metric-card-value">{{ session.get('disease', 'Early Blight') }}</div>
+        <div class="metric-card-divider"></div>
+        <div class="metric-card-meta">
+          <span>Confidence Score</span>
+          <span class="metric-pill">{{ session.get('confidence', 95.0) }}%</span>
+        </div>
+      </div>
+
+      <div class="metric-card metric-card--severity">
+        <div class="metric-card-icon">📊</div>
+        <div class="metric-card-label">Severity Assessment</div>
+        <div class="metric-card-value">{{ session.get('severity_pct', 38.0) }}%</div>
+        <div class="metric-card-divider"></div>
+        <div class="metric-card-meta">
+          <span>Category</span>
+          <span class="metric-pill">{{ session.get('severity', 'Medium') }}</span>
+        </div>
+      </div>
+
+      <div class="metric-card metric-card--yield">
+        <div class="metric-card-icon">🌾</div>
+        <div class="metric-card-label">Baseline Crop Yield</div>
+        <div class="metric-card-value">
+          {{ session.get('predicted_yield', 4.2) }}
+          <span style="font-size:1rem;font-weight:600;color:var(--text-muted);">tons/acre</span>
+        </div>
+        <div class="metric-card-divider"></div>
+        <div class="metric-card-meta">
+          <span>ML Random Forest Forecast</span>
+          <span class="metric-pill">RF Model</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Scenario Form -->
+    <div class="card" style="max-width:780px;margin:0 auto;">
+      <h2 class="card-title">⭐ Select What-If Scenario</h2>
+      <p style="color:var(--text-sub);margin-bottom:1.5rem;font-size:0.95rem;">
+        Choose a management scenario to evaluate future simulated disease severity and yield difference.
+      </p>
+      <form action="/run_simulation" method="POST">
+        <div class="form-group" style="margin-bottom:1.5rem;">
+          <label for="scenario">Management Scenario</label>
+          <select name="scenario" id="scenario" class="input-control" required>
+            <option value="Treat Now" selected>1. Treat Now (Immediate Fungicide / Bio-control)</option>
+            <option value="Wait 7 Days">2. Wait 7 Days (Delayed Action)</option>
+            <option value="No Treatment">3. No Treatment (Uncontrolled Disease Spread)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:2rem;">
+          <label for="days">Simulation Days <span class="unit-tag">Days</span></label>
+          <input type="number" name="days" id="days" value="7" min="1" max="30" class="input-control" required>
+        </div>
+        <button type="submit" class="btn-predict">
+          <span>⭐ Run What-If Impact Simulation</span>
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <footer>BCA 5th-Semester Project Review | AgriSmart AI Dashboard Prototype</footer>
+</body>
+</html>
