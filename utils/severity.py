@@ -3,22 +3,21 @@ import numpy as np
 
 def calculate_disease_severity(image_path_or_array):
     """
-    Calculates disease severity percentage using HSV color thresholding & contour extraction.
+    Calculates disease severity percentage across diverse plant species (flowers, vegetables, roots, grains)
+    using multi-band HSV color thresholding & contour extraction.
     Formula: Disease Percentage = (Diseased Area / Total Leaf Area) * 100
     
-    Thresholds (Project Methodology):
+    Thresholds:
       0% - 20%   -> Low
      21% - 50%   -> Medium
      51% - 100%  -> High
     """
-    # 1. Load image
     if isinstance(image_path_or_array, str):
         img = cv2.imread(image_path_or_array)
     else:
         img = image_path_or_array
 
     if img is None:
-        # Fallback default if image fails to load
         return {
             'is_valid_leaf': False,
             'affected_percentage': 0.0,
@@ -27,32 +26,42 @@ def calculate_disease_severity(image_path_or_array):
             'diseased_pixels': 0
         }
 
-    # Resize image for standard analysis
     img = cv2.resize(img, (256, 256))
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-    # 2. Extract Total Leaf Area (Greenish + Yellowish + Brownish regions)
-    # Green leaf range
-    lower_green = np.array([25, 40, 40])
-    upper_green = np.array([85, 255, 255])
+    # 1. Healthy green leaf tissue range
+    lower_green = np.array([25, 35, 35])
+    upper_green = np.array([88, 255, 255])
     mask_green = cv2.inRange(hsv, lower_green, upper_green)
 
-    # Diseased brown / yellow lesion range
-    lower_yellow_brown = np.array([10, 40, 40])
-    upper_yellow_brown = np.array([24, 255, 255])
-    mask_diseased1 = cv2.inRange(hsv, lower_yellow_brown, upper_yellow_brown)
+    # 2. Diseased Symptom Bands:
+    # a) Yellowish / chlorotic / light-brown lesions (Blights, Downy Mildew, Leaf Mold, Wilt)
+    mask_yellow_brown = cv2.inRange(hsv, np.array([10, 40, 40]), np.array([24, 255, 255]))
 
-    lower_dark_brown = np.array([0, 50, 20])
-    upper_dark_brown = np.array([9, 255, 200])
-    mask_diseased2 = cv2.inRange(hsv, lower_dark_brown, upper_dark_brown)
+    # b) Dark necrotic brown & black spots (Black Spot, Anthracnose, Late Blight)
+    mask_dark_necrotic = cv2.inRange(hsv, np.array([0, 30, 10]), np.array([180, 255, 75]))
 
-    mask_diseased = cv2.bitwise_or(mask_diseased1, mask_diseased2)
+    # c) Reddish-orange rust pustules (Leaf Rust)
+    mask_rust1 = cv2.inRange(hsv, np.array([0, 70, 70]), np.array([10, 255, 255]))
+    mask_rust2 = cv2.inRange(hsv, np.array([170, 70, 70]), np.array([180, 255, 255]))
+    mask_rust = cv2.bitwise_or(mask_rust1, mask_rust2)
+
+    # d) White / powdery mildew fungal coating (Powdery Mildew)
+    # Low saturation (<45) and high value (>175)
+    mask_powdery = cv2.inRange(hsv, np.array([0, 0, 175]), np.array([180, 50, 255]))
+
+    # Combine all diseased symptom masks
+    mask_diseased = cv2.bitwise_or(mask_yellow_brown, mask_dark_necrotic)
+    mask_diseased = cv2.bitwise_or(mask_diseased, mask_rust)
+    mask_diseased = cv2.bitwise_or(mask_diseased, mask_powdery)
+
+    # Total plant leaf surface area (green healthy tissue + infected regions)
     mask_total_leaf = cv2.bitwise_or(mask_green, mask_diseased)
 
     total_leaf_pixels = cv2.countNonZero(mask_total_leaf)
     diseased_pixels = cv2.countNonZero(mask_diseased)
 
-    # Validate that image contains a real leaf/plant (minimum 4% of pixels)
+    # Safety Guard: Ensure image contains actual leaf/plant matter (>4% area, sufficient texture)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     std_dev = float(np.std(gray))
 
@@ -65,11 +74,11 @@ def calculate_disease_severity(image_path_or_array):
             'diseased_pixels': 0
         }
 
-    # 3. Calculate Disease Percentage
+    # Calculate Affected Percentage
     affected_percentage = (diseased_pixels / float(total_leaf_pixels)) * 100.0
     affected_percentage = round(float(min(100.0, max(0.0, affected_percentage))), 1)
 
-    # 4. Determine Severity Level
+    # Severity Level
     if affected_percentage <= 20.0:
         severity = "Low"
     elif affected_percentage <= 50.0:
@@ -87,15 +96,7 @@ def calculate_disease_severity(image_path_or_array):
 
 if __name__ == "__main__":
     import os
-    sample_img_path = os.path.join("dataset", "disease", "Early_Blight", "early_blight_1.jpg")
-    if os.path.exists(sample_img_path):
-        res = calculate_disease_severity(sample_img_path)
-        print("=" * 50)
-        print("DISEASE SEVERITY ASSESSMENT TEST")
-        print("=" * 50)
-        print(f"Image Analysed     : {sample_img_path}")
-        print(f"Total Leaf Area    : {res['total_leaf_pixels']} pixels")
-        print(f"Diseased Area      : {res['diseased_pixels']} pixels")
-        print(f"Affected Area (%)  : {res['affected_percentage']}%")
-        print(f"Severity Category  : {res['severity']}")
-        print("=" * 50)
+    sample_path = os.path.join("dataset", "disease", "Early_Blight", "early_blight_1.jpg")
+    if os.path.exists(sample_path):
+        res = calculate_disease_severity(sample_path)
+        print("Leaf Severity Test:", res)

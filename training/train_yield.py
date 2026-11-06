@@ -1,4 +1,5 @@
 import os
+import sys
 import joblib
 import numpy as np
 import pandas as pd
@@ -7,6 +8,12 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
 
 def train_yield_model():
     dataset_path = os.path.join("dataset", "yield_data.csv")
@@ -18,16 +25,20 @@ def train_yield_model():
         return
 
     print("=" * 50)
-    print("TRAINING CROP YIELD PREDICTION MODEL")
+    print("TRAINING CROP YIELD PREDICTION MODEL (20 CROPS)")
     print("=" * 50)
     
     # 1. Load dataset
     df = pd.read_csv(dataset_path)
-    print(f"[1] Loaded dataset with {df.shape[0]} rows and {df.shape[1]} columns.")
+    print(f"[1] Loaded dataset with {df.shape[0]} rows across {df['Crop'].nunique()} crops.")
     
     # 2. Define Features and Target
-    # Target column is Yield_Tons_Per_Acre
-    X = df.drop(columns=['Yield_Tons_Per_Acre'])
+    feature_cols = [
+        'Crop', 'Season', 'Area_Acres', 'Soil_pH',
+        'Nitrogen_N', 'Phosphorus_P', 'Potassium_K',
+        'Temperature_C', 'Humidity_pct', 'Rainfall_mm'
+    ]
+    X = df[feature_cols]
     y = df['Yield_Tons_Per_Acre']
     
     categorical_cols = ['Crop', 'Season']
@@ -53,7 +64,7 @@ def train_yield_model():
     )
     
     # 6. Train Random Forest Regressor
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model = RandomForestRegressor(n_estimators=120, random_state=42)
     model.fit(X_train, y_train)
     print("[2] Random Forest Regressor training complete.")
     
@@ -67,7 +78,7 @@ def train_yield_model():
     print("\n--- MODEL EVALUATION METRICS ---")
     print(f" -> Mean Absolute Error (MAE) : {mae:.4f} tons/acre")
     print(f" -> Root Mean Sq. Error (RMSE): {rmse:.4f} tons/acre")
-    print(f" -> R-squared Score (R²)      : {r2:.4f} ({r2 * 100:.2f}%)")
+    print(f" -> R-squared Score (R2)      : {r2:.4f} ({r2 * 100:.2f}%)")
     print("--------------------------------\n")
     
     # 8. Save Trained Model and Preprocessor
@@ -81,23 +92,23 @@ def train_yield_model():
     
     # 9. Quick Prediction Test Demo
     sample_input = pd.DataFrame([{
-        'Crop': 'Tomato',
-        'Season': 'Rabi',
-        'Area_Acres': 2.5,
+        'Crop': 'Rose',
+        'Season': 'Whole Year',
+        'Area_Acres': 2.0,
         'Soil_pH': 6.5,
-        'Nitrogen_N': 90,
-        'Phosphorus_P': 45,
+        'Nitrogen_N': 80,
+        'Phosphorus_P': 40,
         'Potassium_K': 60,
-        'Temperature_C': 26.5,
-        'Humidity_pct': 65.0,
-        'Rainfall_mm': 750.0
+        'Temperature_C': 21.0,
+        'Humidity_pct': 60.0,
+        'Rainfall_mm': 520.0
     }])
     
     sample_processed = preprocessor.transform(sample_input)
     predicted_yield = model.predict(sample_processed)[0]
     
     print("\n--- TEST PREDICTION DEMO ---")
-    print(f"Input: Tomato, 2.5 Acres, pH 6.5, NPK (90,45,60), 26.5C, 65% Hum, 750mm Rain")
+    print("Input: Rose, 2.0 Acres, Whole Year, pH 6.5, NPK (80,40,60)")
     print(f"Predicted Yield: {predicted_yield:.2f} tons/acre")
     print("=" * 50)
 

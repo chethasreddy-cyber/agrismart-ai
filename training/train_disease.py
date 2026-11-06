@@ -1,4 +1,5 @@
 import os
+import sys
 import cv2
 import joblib
 import numpy as np
@@ -6,7 +7,26 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
-CLASSES = ['Healthy', 'Early_Blight', 'Late_Blight', 'Leaf_Mold', 'Potato_Early_Blight', 'Potato_Late_Blight']
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
+CLASSES = [
+    'Healthy',
+    'Early_Blight',
+    'Late_Blight',
+    'Powdery_Mildew',
+    'Downy_Mildew',
+    'Black_Spot',
+    'Leaf_Rust',
+    'Anthracnose',
+    'Bacterial_Leaf_Spot',
+    'Leaf_Mold',
+    'Root_Rot_Wilt',
+    'Mosaic_Virus'
+]
 IMG_SIZE = (64, 64)
 
 def extract_features(img):
@@ -48,7 +68,7 @@ def load_disease_dataset(data_dir):
 
 def train_disease_model():
     print("=" * 50)
-    print("TRAINING CROP DISEASE DETECTION MODEL")
+    print("TRAINING BROAD-SPECTRUM CROP DISEASE DETECTION MODEL (12 CLASSES)")
     print("=" * 50)
     
     data_dir = os.path.join("dataset", "disease")
@@ -56,7 +76,7 @@ def train_disease_model():
     os.makedirs(models_dir, exist_ok=True)
     
     X, y = load_disease_dataset(data_dir)
-    print(f"[1] Loaded {len(X)} image samples across {len(CLASSES)} classes.")
+    print(f"[1] Loaded {len(X)} image samples across {len(CLASSES)} disease categories.")
     
     if len(X) == 0:
         print("[ERROR] No leaf images found. Please run generate_sample_data.py first.")
@@ -68,7 +88,7 @@ def train_disease_model():
     )
     
     # Train Random Forest Classifier on visual features
-    clf = RandomForestClassifier(n_estimators=100, random_state=42)
+    clf = RandomForestClassifier(n_estimators=120, random_state=42)
     clf.fit(X_train, y_train)
     print("[2] Image Classifier model training complete.")
     
@@ -98,7 +118,7 @@ def train_disease_model():
     
     print("\n--- TEST PREDICTION DEMO ---")
     print(f"Predicted Class : {CLASSES[pred_idx]}")
-    print(f"Confidence Score: {confidence:.2f}%")
+    print(f"Confidence      : {confidence:.2f}%")
     print("=" * 50)
 
 if __name__ == "__main__":

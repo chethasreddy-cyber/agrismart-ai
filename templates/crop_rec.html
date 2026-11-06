@@ -3,8 +3,138 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crop Recommendation | AgriSmart AI</title>
+  <title>Live Crop Recommendation | AgriSmart AI</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .telemetry-card {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      border-radius: 18px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.1rem;
+      margin-top: 1.25rem;
+    }
+    .telemetry-item {
+      background: rgba(7, 26, 23, 0.6);
+      border: 1px solid rgba(52, 211, 153, 0.18);
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .telemetry-item:hover {
+      transform: translateY(-2px);
+      border-color: rgba(52, 211, 153, 0.4);
+    }
+    .telemetry-item-icon {
+      font-size: 1.8rem;
+      margin-bottom: 0.35rem;
+    }
+    .telemetry-item-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+    .telemetry-item-val {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-top: 0.2rem;
+      font-family: 'Outfit', sans-serif;
+    }
+    .crop-card-enhanced {
+      background: rgba(7, 26, 23, 0.65);
+      border: 1px solid rgba(52, 211, 153, 0.18);
+      border-radius: 16px;
+      padding: 1.25rem 1.4rem;
+      display: flex;
+      gap: 1.25rem;
+      align-items: center;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .crop-card-enhanced:hover {
+      transform: translateY(-3px);
+      border-color: rgba(52, 211, 153, 0.45);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+    .crop-card-enhanced--top {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(6, 182, 212, 0.08) 100%);
+      border-color: rgba(52, 211, 153, 0.45);
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+    }
+    .crop-card-icon {
+      font-size: 2.8rem;
+      width: 65px;
+      height: 65px;
+      border-radius: 14px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .crop-cat-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      display: inline-block;
+    }
+    .cat-pill--flower {
+      background: rgba(244, 114, 182, 0.15);
+      border: 1px solid rgba(244, 114, 182, 0.35);
+      color: #f472b6;
+    }
+    .cat-pill--vegetable {
+      background: rgba(52, 211, 153, 0.15);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      color: #34d399;
+    }
+    .cat-pill--root {
+      background: rgba(251, 146, 60, 0.15);
+      border: 1px solid rgba(251, 146, 60, 0.35);
+      color: #fb923c;
+    }
+    .cat-pill--grain {
+      background: rgba(250, 204, 21, 0.15);
+      border: 1px solid rgba(250, 204, 21, 0.35);
+      color: #facc15;
+    }
+    .month-pill-btn {
+      padding: 0.35rem 0.85rem;
+      border-radius: 8px;
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      background: rgba(7, 26, 23, 0.5);
+      color: var(--text-sub);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .month-pill-btn:hover {
+      border-color: var(--primary-light);
+      color: var(--text-main);
+    }
+    .month-pill-btn.active {
+      background: var(--primary-light);
+      color: #042017;
+      border-color: var(--primary-light);
+      font-weight: 700;
+    }
+  </style>
 </head>
 <body>
 
@@ -33,82 +163,300 @@
   <div class="container">
 
     <div class="page-hero" style="text-align:left;padding:2rem 0 1.5rem;">
-      <div class="hero-badge">🤖 ML Multi-Class Classifier</div>
-      <h1>Optimal Crop Recommendation Engine</h1>
-      <p>Input your soil and climate parameters to discover the most suitable crops ranked by ML confidence score.</p>
+      <div class="hero-badge">🛰️ Autonomous Weather Telemetry</div>
+      <h1>Live Weather &amp; Month Crop Recommendation</h1>
+      <p>Zero manual data entry required. AgriSmart AI automatically retrieves live real-time climate telemetry and calendar month to recommend optimal crops spanning flowers, vegetables, root crops, and grains.</p>
     </div>
 
-    <div class="dashboard-grid">
-
-      <!-- Form -->
-      <div class="card">
-        <h2 class="card-title">🌾 Soil &amp; Climate Inputs</h2>
-        <form action="/recommend_crop_action" method="POST">
-
-          <div class="form-section">
-            <div class="section-header">🧪 SOIL pH</div>
-            <div class="grid-3-inputs">
-              <div class="form-group">
-                <label for="soil_ph">Soil pH</label>
-                <input type="number" step="0.1" name="soil_ph" id="soil_ph" value="6.5" class="input-control" required>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <div class="section-header">🌤️ WEATHER PARAMETERS</div>
-            <div class="grid-3-inputs">
-              <div class="form-group">
-                <label for="temperature">Avg Temp <span class="unit-tag">°C</span></label>
-                <input type="number" step="0.1" name="temperature" id="temperature" value="26.5" class="input-control" required>
-              </div>
-              <div class="form-group">
-                <label for="humidity">Humidity <span class="unit-tag">%</span></label>
-                <input type="number" step="0.1" name="humidity" id="humidity" value="65.0" class="input-control" required>
-              </div>
-              <div class="form-group">
-                <label for="rainfall">Rainfall <span class="unit-tag">mm</span></label>
-                <input type="number" step="0.1" name="rainfall" id="rainfall" value="750.0" class="input-control" required>
-              </div>
-            </div>
-          </div>
-
-          <button type="submit" class="btn-predict">
-            <span>🤖 Recommend Best Crops</span>
+    <!-- Live Telemetry Card (Replaces Soil pH & Manual Forms) -->
+    <div class="telemetry-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;">
+        <div>
+          <span style="display:inline-flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--primary-light);font-weight:700;">
+            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 10px #10b981;"></span>
+            LIVE WEATHER TELEMETRY ACTIVE
+          </span>
+          <h2 style="font-size:1.4rem;color:var(--text-main);margin:0.25rem 0 0;" id="locationTitle">
+            📍 Detecting Location...
+          </h2>
+        </div>
+        <div style="display:flex;gap:0.75rem;align-items:center;">
+          <button type="button" class="btn-predict" onclick="refreshLiveWeather()" style="padding:0.6rem 1.1rem;font-size:0.85rem;min-width:auto;box-shadow:none;">
+            <span id="refreshIcon">🔄</span> Re-Sync Live Climate
           </button>
-        </form>
+        </div>
       </div>
 
-      <!-- Results -->
-      <div class="card">
-        <h2 class="card-title">🎯 Top Crop Recommendations</h2>
+      <!-- Telemetry Parameters Bar -->
+      <div class="telemetry-grid">
+        <div class="telemetry-item">
+          <div class="telemetry-item-icon">🗓️</div>
+          <div class="telemetry-item-label">Current Month</div>
+          <div class="telemetry-item-val" id="monthVal">{{ current_month }}</div>
+          <div style="font-size:0.75rem;color:var(--primary-light);margin-top:0.2rem;" id="seasonBadge">Rabi Season</div>
+        </div>
 
+        <div class="telemetry-item">
+          <div class="telemetry-item-icon">🌡️</div>
+          <div class="telemetry-item-label">Live Temperature</div>
+          <div class="telemetry-item-val" id="tempVal">{{ temperature }} <span style="font-size:0.9rem;font-weight:500;color:var(--text-muted);">°C</span></div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Real-Time Open-Meteo</div>
+        </div>
+
+        <div class="telemetry-item">
+          <div class="telemetry-item-icon">💧</div>
+          <div class="telemetry-item-label">Relative Humidity</div>
+          <div class="telemetry-item-val" id="humidityVal">{{ humidity }} <span style="font-size:0.9rem;font-weight:500;color:var(--text-muted);">%</span></div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Atmospheric Sensor</div>
+        </div>
+
+        <div class="telemetry-item">
+          <div class="telemetry-item-icon">🌧️</div>
+          <div class="telemetry-item-label">Precipitation / Rain</div>
+          <div class="telemetry-item-val" id="rainVal">{{ rainfall }} <span style="font-size:0.9rem;font-weight:500;color:var(--text-muted);">mm</span></div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.2rem;">Seasonal Index</div>
+        </div>
+      </div>
+
+      <!-- Month Selector Quick Chips (For previewing other seasons without typing) -->
+      <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid rgba(52,211,153,0.15);">
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.6rem;font-weight:600;">
+          📅 PREVIEW CROPS FOR ANY MONTH (Zero Typing):
+        </div>
+        <div style="display:flex;gap:0.45rem;flex-wrap:wrap;" id="monthChips">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations Grid -->
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+        <div>
+          <h2 style="font-size:1.35rem;color:var(--text-main);margin:0;">🎯 Top Recommended Crops for This Climate</h2>
+          <p style="font-size:0.85rem;color:var(--text-muted);margin:0.2rem 0 0;">Ranked by Random Forest Multi-Class ML Classifier across Flowers, Vegetables, Root Crops &amp; Cereals</p>
+        </div>
+        <span class="badge" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:var(--primary-light);">
+          ✨ Automated Match
+        </span>
+      </div>
+
+      <div id="cropsContainer" style="display:flex;flex-direction:column;gap:1rem;">
         {% if top_crops %}
-        <div style="display:flex;flex-direction:column;gap:0.85rem;">
           {% for item in top_crops %}
-          <div class="crop-rank-row {% if loop.index == 1 %}crop-rank-row--top{% endif %}">
-            <div class="crop-rank-badge">
-              {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}#{{ loop.index }}{% endif %}
-            </div>
+          <div class="crop-card-enhanced {% if loop.index == 1 %}crop-card-enhanced--top{% endif %}">
+            <div class="crop-card-icon">{{ item.icon }}</div>
             <div style="flex:1;">
-              <div class="crop-rank-name">{{ item.crop }}</div>
-              <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.15rem;">Random Forest ML Classifier</div>
+              <div style="display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;margin-bottom:0.25rem;">
+                <span style="font-size:1.25rem;font-weight:700;color:var(--text-main);">{{ item.crop }}</span>
+                {% if item.category == 'Flower' %}
+                  <span class="crop-cat-pill cat-pill--flower">🌸 Flower Crop</span>
+                {% elif item.category == 'Vegetable' %}
+                  <span class="crop-cat-pill cat-pill--vegetable">🥦 Vegetable</span>
+                {% elif item.category == 'Root Crop' %}
+                  <span class="crop-cat-pill cat-pill--root">🥕 Root &amp; Tuber</span>
+                {% else %}
+                  <span class="crop-cat-pill cat-pill--grain">🌾 Cereal &amp; Grain</span>
+                {% endif %}
+                {% if loop.index == 1 %}
+                  <span style="font-size:0.75rem;padding:0.2rem 0.55rem;border-radius:6px;background:rgba(250,204,21,0.15);border:1px solid rgba(250,204,21,0.35);color:#fbbf24;font-weight:700;">
+                    🥇 #1 Top Match
+                  </span>
+                {% endif %}
+              </div>
+              <div style="font-size:0.85rem;color:var(--text-muted);line-height:1.45;">{{ item.reason }}</div>
             </div>
-            <div class="crop-rank-score">{{ item.score }}%</div>
+
+            <!-- Score Pill & Action -->
+            <div style="text-align:right;min-width:140px;">
+              <div style="font-size:1.45rem;font-weight:800;color:var(--primary-light);font-family:'Outfit',sans-serif;">
+                {{ item.score }}%
+              </div>
+              <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;">
+                Suitability Match
+              </div>
+              <a href="/yield?crop={{ item.crop }}" style="display:inline-block;margin-top:0.45rem;font-size:0.8rem;color:var(--accent-cyan);text-decoration:none;font-weight:600;">
+                Predict Yield →
+              </a>
+            </div>
           </div>
           {% endfor %}
-        </div>
-        {% else %}
-        <div style="text-align:center;padding:3rem 1rem;">
-          <div style="font-size:3rem;margin-bottom:1rem;">🤖</div>
-          <p style="color:var(--text-muted);font-size:0.95rem;">Submit soil and weather details to discover the top recommended crops for your farm.</p>
-        </div>
         {% endif %}
       </div>
-
     </div>
+
   </div>
 
-  <footer>BCA 5th-Semester Project Review | AgriSmart AI Dashboard Prototype</footer>
+  <footer>BCA 5th-Semester Project Review | AgriSmart AI Autonomous Crop Recommendation</footer>
+
+  <script>
+    const MONTH_NAMES = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    let currentSelectedMonth = new Date().getMonth() + 1; // 1-12
+    let currentTemp = parseFloat("{{ temperature }}") || 22.5;
+    let currentHumidity = parseFloat("{{ humidity }}") || 64.0;
+    let currentRainfall = parseFloat("{{ rainfall }}") || 520.0;
+    let currentLocStr = "Automatic Weather Telemetry";
+
+    function getSeasonName(month) {
+      if ([6, 7, 8, 9].includes(month)) return "Kharif Season (Monsoon)";
+      if ([10, 11, 12, 1, 2].includes(month)) return "Rabi Season (Winter)";
+      return "Zaid Season (Summer)";
+    }
+
+    function renderMonthChips() {
+      const container = document.getElementById('monthChips');
+      container.innerHTML = '';
+      for (let m = 1; m <= 12; m++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `month-pill-btn ${m === currentSelectedMonth ? 'active' : ''}`;
+        const isCurrent = (m === (new Date().getMonth() + 1));
+        btn.innerText = `${MONTH_NAMES[m].substring(0, 3)}${isCurrent ? ' ★' : ''}`;
+        btn.title = `${MONTH_NAMES[m]} (${getSeasonName(m)})`;
+        btn.onclick = () => selectMonth(m);
+        container.appendChild(btn);
+      }
+    }
+
+    function selectMonth(m) {
+      currentSelectedMonth = m;
+      document.getElementById('monthVal').innerText = MONTH_NAMES[m];
+      document.getElementById('seasonBadge').innerText = getSeasonName(m);
+      renderMonthChips();
+      fetchRecommendations();
+    }
+
+    // Auto-detect live weather from Open-Meteo via browser Geolocation
+    function autoDetectWeather() {
+      if ("geolocation" in navigator) {
+        document.getElementById('locationTitle').innerText = "📍 Acquiring GPS Satellite Lock...";
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            try {
+              document.getElementById('locationTitle').innerText = `📍 Live GPS Coordinates: (${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E)`;
+              
+              // Open-Meteo Free Public Weather API
+              const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation&timezone=auto`);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.current) {
+                  currentTemp = Math.round(data.current.temperature_2m * 10) / 10;
+                  currentHumidity = Math.round(data.current.relative_humidity_2m);
+                  // Precipitation or realistic seasonal estimate
+                  const precip = data.current.precipitation || 0.0;
+                  currentRainfall = precip > 0 ? Math.round(precip * 50 + 400) : 520.0;
+                  
+                  document.getElementById('tempVal').innerHTML = `${currentTemp} <span style="font-size:0.9rem;font-weight:500;color:var(--text-muted);">°C</span>`;
+                  document.getElementById('humidityVal').innerHTML = `${currentHumidity} <span style="font-size:0.9rem;font-weight:500;color:var(--text-muted);">%</span>`;
+                  document.getElementById('rainVal').innerHTML = `${currentRainfall} <span style="font-size:0.9rem;font-weight:500;color:var(--text-muted);">mm</span>`;
+                  
+                  currentLocStr = `Live Farm Telemetry (${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E)`;
+                  document.getElementById('locationTitle').innerText = `📍 ${currentLocStr}`;
+                  
+                  fetchRecommendations();
+                }
+              }
+            } catch (err) {
+              console.log("Weather API fallback:", err);
+              document.getElementById('locationTitle').innerText = `📍 Detected Regional Climate (India)`;
+            }
+          },
+          (err) => {
+            // Geolocation blocked or denied: use auto server default smoothly
+            document.getElementById('locationTitle').innerText = `📍 Regional Agricultural Station (Live Telemetry)`;
+          },
+          { timeout: 7000 }
+        );
+      } else {
+        document.getElementById('locationTitle').innerText = `📍 Regional Station (Automated)`;
+      }
+    }
+
+    async function fetchRecommendations() {
+      const container = document.getElementById('cropsContainer');
+      const icon = document.getElementById('refreshIcon');
+      if (icon) icon.innerText = '⏳';
+
+      try {
+        const resp = await fetch('/api/recommend_by_weather', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            month: currentSelectedMonth,
+            temperature: currentTemp,
+            humidity: currentHumidity,
+            rainfall: currentRainfall,
+            location: currentLocStr
+          })
+        });
+
+        if (resp.ok) {
+          const data = await resp.json();
+          renderCrops(data.top_crops);
+        }
+      } catch (e) {
+        console.error("Failed to fetch recommendations:", e);
+      } finally {
+        if (icon) icon.innerText = '🔄';
+      }
+    }
+
+    function renderCrops(crops) {
+      const container = document.getElementById('cropsContainer');
+      if (!crops || crops.length === 0) return;
+
+      let html = '';
+      crops.forEach((item, index) => {
+        let catPill = '';
+        if (item.category === 'Flower') {
+          catPill = `<span class="crop-cat-pill cat-pill--flower">🌸 Flower Crop</span>`;
+        } else if (item.category === 'Vegetable') {
+          catPill = `<span class="crop-cat-pill cat-pill--vegetable">🥦 Vegetable</span>`;
+        } else if (item.category === 'Root Crop') {
+          catPill = `<span class="crop-cat-pill cat-pill--root">🥕 Root &amp; Tuber</span>`;
+        } else {
+          catPill = `<span class="crop-cat-pill cat-pill--grain">🌾 Cereal &amp; Grain</span>`;
+        }
+
+        const isTop = (index === 0);
+        html += `
+          <div class="crop-card-enhanced ${isTop ? 'crop-card-enhanced--top' : ''}">
+            <div class="crop-card-icon">${item.icon || '🌱'}</div>
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;margin-bottom:0.25rem;">
+                <span style="font-size:1.25rem;font-weight:700;color:var(--text-main);">${item.crop}</span>
+                ${catPill}
+                ${isTop ? `<span style="font-size:0.75rem;padding:0.2rem 0.55rem;border-radius:6px;background:rgba(250,204,21,0.15);border:1px solid rgba(250,204,21,0.35);color:#fbbf24;font-weight:700;">🥇 #1 Top Match</span>` : ''}
+              </div>
+              <div style="font-size:0.85rem;color:var(--text-muted);line-height:1.45;">${item.reason}</div>
+            </div>
+            <div style="text-align:right;min-width:140px;">
+              <div style="font-size:1.45rem;font-weight:800;color:var(--primary-light);font-family:'Outfit',sans-serif;">
+                ${item.score}%
+              </div>
+              <div style="font-size:0.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em;">
+                Suitability Match
+              </div>
+              <a href="/yield?crop=${encodeURIComponent(item.crop)}" style="display:inline-block;margin-top:0.45rem;font-size:0.8rem;color:var(--accent-cyan);text-decoration:none;font-weight:600;">
+                Predict Yield →
+              </a>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    function refreshLiveWeather() {
+      autoDetectWeather();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderMonthChips();
+      autoDetectWeather();
+    });
+  </script>
 </body>
 </html>

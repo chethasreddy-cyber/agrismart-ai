@@ -112,9 +112,33 @@
             <div class="spinner" id="analyzeSpinner" style="display:none;"></div>
             <span id="analyzeBtnText">🍃 Analyze Disease &amp; Severity</span>
           </button>
-          <a href="/use_sample_leaf" class="btn-predict" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:var(--primary-light);text-decoration:none;flex:1;min-width:220px;box-shadow:none;">
-            ⚡ Use Sample Early Blight Leaf
-          </a>
+        </div>
+
+        <!-- Quick Multi-Crop Sample Disease Testing -->
+        <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid rgba(52,211,153,0.18);">
+          <div style="font-size:0.82rem;color:var(--text-muted);font-weight:700;margin-bottom:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">
+            ⚡ Instant 1-Click Multi-Crop Test Samples:
+          </div>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <a href="/use_sample_leaf?type=Early_Blight" class="month-pill-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.35rem;padding:0.45rem 0.85rem;">
+              🍅 Early Blight (Tomato/Potato)
+            </a>
+            <a href="/use_sample_leaf?type=Powdery_Mildew" class="month-pill-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.35rem;padding:0.45rem 0.85rem;">
+              🌸 Powdery Mildew (Rose/Cucumber)
+            </a>
+            <a href="/use_sample_leaf?type=Black_Spot" class="month-pill-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.35rem;padding:0.45rem 0.85rem;">
+              🌹 Black Spot (Rose/Flower)
+            </a>
+            <a href="/use_sample_leaf?type=Leaf_Rust" class="month-pill-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.35rem;padding:0.45rem 0.85rem;">
+              🌾 Leaf Rust (Wheat/Sunflower)
+            </a>
+            <a href="/use_sample_leaf?type=Anthracnose" class="month-pill-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.35rem;padding:0.45rem 0.85rem;">
+              🌶️ Anthracnose (Chilli/Jasmine)
+            </a>
+            <a href="/use_sample_leaf?type=Root_Rot_Wilt" class="month-pill-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.35rem;padding:0.45rem 0.85rem;">
+              🥕 Root Rot / Wilt (Carrot/Ginger)
+            </a>
+          </div>
         </div>
       </form>
     </div>

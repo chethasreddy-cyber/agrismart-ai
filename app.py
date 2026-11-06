@@ -3,7 +3,8 @@ import joblib
 import cv2
 import numpy as np
 import pandas as pd
-from flask import Flask, render_template, request, redirect, url_for, session
+from datetime import datetime
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from werkzeug.utils import secure_filename
 
 # Import custom severity, simulator, fertilizer, crop recommendation, and remedies modules
@@ -193,7 +194,10 @@ def detect_disease():
 
 @app.route('/use_sample_leaf')
 def use_sample_leaf():
-    sample_path = os.path.join('dataset', 'disease', 'Early_Blight', 'early_blight_1.jpg')
+    sample_type = request.args.get('type', 'Early_Blight')
+    sample_path = os.path.join('dataset', 'disease', sample_type, f"{sample_type.lower()}_1.jpg")
+    if not os.path.exists(sample_path):
+        sample_path = os.path.join('dataset', 'disease', 'Early_Blight', 'early_blight_1.jpg')
     if not os.path.exists(sample_path):
         sample_path = os.path.join(app.config['UPLOAD_FOLDER'], 'default_leaf.jpg')
         # Create fallback image if not present
@@ -254,20 +258,77 @@ def calculate_fertilizer():
 
 @app.route('/crop_recommendation')
 def crop_recommendation_page():
-    return render_template('crop_rec.html')
+    curr_month = datetime.now().month
+    month_names = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    month_name = month_names[curr_month]
+    default_temp = 22.5
+    default_humidity = 64.0
+    default_rainfall = 520.0
+
+    top_crops = predict_recommended_crop(
+        temp=default_temp,
+        humidity=default_humidity,
+        rainfall=default_rainfall,
+        month=curr_month
+    )
+    return render_template(
+        'crop_rec.html',
+        top_crops=top_crops,
+        current_month=month_name,
+        month_num=curr_month,
+        temperature=default_temp,
+        humidity=default_humidity,
+        rainfall=default_rainfall
+    )
+
+@app.route('/api/recommend_by_weather', methods=['POST'])
+def api_recommend_by_weather():
+    data = request.get_json(silent=True) or request.form
+    now = datetime.now()
+    month = int(data.get('month', now.month))
+    temp = float(data.get('temperature', 22.5))
+    humidity = float(data.get('humidity', 64.0))
+    rainfall = float(data.get('rainfall', 520.0))
+    location = data.get('location', 'Detected Live Telemetry')
+
+    top_crops = predict_recommended_crop(
+        temp=temp,
+        humidity=humidity,
+        rainfall=rainfall,
+        month=month
+    )
+    return jsonify({
+        'status': 'success',
+        'month': month,
+        'temperature': temp,
+        'humidity': humidity,
+        'rainfall': rainfall,
+        'location': location,
+        'top_crops': top_crops
+    })
 
 @app.route('/recommend_crop_action', methods=['POST'])
 def recommend_crop_action():
-    soil_ph = float(request.form.get('soil_ph', 6.5))
-    nitrogen = 90.0
-    phosphorus = 45.0
-    potassium = 60.0
-    temperature = float(request.form.get('temperature', 26.5))
-    humidity = float(request.form.get('humidity', 65.0))
-    rainfall = float(request.form.get('rainfall', 750.0))
+    temperature = float(request.form.get('temperature', 22.5))
+    humidity = float(request.form.get('humidity', 64.0))
+    rainfall = float(request.form.get('rainfall', 520.0))
+    month = int(request.form.get('month', datetime.now().month))
 
-    top_crops = predict_recommended_crop(soil_ph, nitrogen, phosphorus, potassium, temperature, humidity, rainfall)
-    return render_template('crop_rec.html', top_crops=top_crops)
+    top_crops = predict_recommended_crop(
+        temp=temperature,
+        humidity=humidity,
+        rainfall=rainfall,
+        month=month
+    )
+    month_names = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    return render_template(
+        'crop_rec.html',
+        top_crops=top_crops,
+        current_month=month_names[month],
+        temperature=temperature,
+        humidity=humidity,
+        rainfall=rainfall
+    )
 
 @app.route('/result')
 def result_page():
@@ -289,7 +350,8 @@ def result_page():
         crop=crop, soil_n=90, soil_p=45, soil_k=60, soil_ph=6.5, area_acres=area
     )
 
-    crop_recs = predict_recommended_crop(6.5, 90, 45, 60, 26.5, 65.0, 750.0)
+    curr_month = datetime.now().month
+    crop_recs = predict_recommended_crop(temp=22.5, humidity=64.0, rainfall=520.0, month=curr_month)
     remedy_info = get_crop_remedies(disease)
 
     return render_template(
@@ -319,15 +381,12 @@ def run_simulation():
         days=days
     )
 
-    # Compute Fertilizer Recommendation for Result Dashboard
     fert_rec = calculate_fertilizer_recommendation(
         crop=crop, soil_n=90, soil_p=45, soil_k=60, soil_ph=6.5, area_acres=area
     )
 
-    # Compute Crop Recommendation
-    crop_recs = predict_recommended_crop(6.5, 90, 45, 60, 26.5, 65.0, 750.0)
-
-    # Compute Organic vs. Chemical Remedies for Detected Disease
+    curr_month = datetime.now().month
+    crop_recs = predict_recommended_crop(temp=22.5, humidity=64.0, rainfall=520.0, month=curr_month)
     remedy_info = get_crop_remedies(disease)
 
     return render_template(
